@@ -1,6 +1,6 @@
-package com.brantapps.amazonapkpublisher.fetchtoken
+package app.brant.amazonappstorepublisher.fetchtoken
 
-import com.brantapps.amazonapkpublisher.AmazonAppPublishPlugin
+import app.brant.amazonappstorepublisher.PublishPlugin
 import kotlinx.serialization.json.Json
 import retrofit2.Call
 import retrofit2.Response
@@ -29,7 +29,7 @@ class FetchTokenService {
 
     fun fetchToken(securityProfileFile: File?): Token? {
         val parsedProfile = parseSecurityProfile(securityProfileFile)
-        val tokenService = AmazonAppPublishPlugin.retrofit
+        val tokenService = PublishPlugin.retrofit
                 .create(FetchTokenService.GetToken::class.java)
         val response: Response<Token> = tokenService.fetchToken(
                 parsedProfile.grant_type,

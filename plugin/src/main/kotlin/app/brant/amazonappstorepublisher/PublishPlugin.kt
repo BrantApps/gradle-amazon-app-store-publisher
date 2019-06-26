@@ -1,9 +1,9 @@
-package com.brantapps.amazonapkpublisher
+package app.brant.amazonappstorepublisher
 
-import com.brantapps.amazonapkpublisher.apks.ApkService
-import com.brantapps.amazonapkpublisher.edits.Edit
-import com.brantapps.amazonapkpublisher.edits.EditsService
-import com.brantapps.amazonapkpublisher.fetchtoken.FetchTokenService
+import app.brant.amazonappstorepublisher.apks.ApkService
+import app.brant.amazonappstorepublisher.edits.Edit
+import app.brant.amazonappstorepublisher.edits.EditsService
+import app.brant.amazonappstorepublisher.fetchtoken.FetchTokenService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 import javax.naming.ConfigurationException
 
 @Suppress("unused") // Used by Gradle
-class AmazonAppPublishPlugin : Plugin<Project> {
+class PublishPlugin : Plugin<Project> {
     companion object {
         private val contentType: MediaType = MediaType.get("application/json")
         const val apiVersion = "v1"
@@ -44,7 +44,7 @@ class AmazonAppPublishPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val amazon = extensions.create(
                 pluginDslRoot,
-                AmazonAppPublishPluginExtension::class.java
+                PublishPluginExtension::class.java
         )
 
         tasks {
@@ -90,7 +90,7 @@ class AmazonAppPublishPlugin : Plugin<Project> {
         }
     }
 
-    private fun validateInputs(amazon: AmazonAppPublishPluginExtension) {
+    private fun validateInputs(amazon: PublishPluginExtension) {
         if (amazon.securityProfile == null) {
             throw ConfigurationException("Missing required path to LWA security profile")
         }

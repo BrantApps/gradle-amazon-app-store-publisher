@@ -1,48 +1,73 @@
 plugins {
+    id("com.gradle.plugin-publish") version "0.10.1"
     id("org.gradle.kotlin.kotlin-dsl") version "1.2.8"
     id("kotlinx-serialization") version "1.3.31"
     `maven-publish`
 }
 
-val artifactId = "amazon-app-publish"
+group = "app.brant"
+version = "0.1.0"
+
+val pluginArtifactId = "amazonappstorepublisher"
+val pluginVcsUrl = "https://github.com/BrantApps/gradle-amazon-app-store-publisher"
 
 gradlePlugin {
     plugins {
-        register("Amazon App Publish") {
-            id = artifactId
+        register("AmazonAppStorePublisher") {
+            id = project.group as String + "." + pluginArtifactId
             displayName = "Gradle Amazon App Store Publisher"
             description = "Gradle Amazon App Store Publisher allows you to upload your APKs to the amazon app store"
-            implementationClass = "com.brantapps.amazonapkpublisher.AmazonAppPublishPlugin"
+            implementationClass = "app.brant.amazonappstorepublisher.PublishPlugin"
         }
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "com.brantapps"
-            artifactId = artifactId
-            version = "1.0.0"
+val sourcesJar by tasks.registering(Jar::class) {
+    classifier = "sources"
+    from(sourceSets["main"].allSource)
+    dependsOn(tasks["classes"])
+}
 
-            from(components["java"])
+afterEvaluate {
+    publishing.publications.named<MavenPublication>("pluginMaven") {
+        artifactId = pluginArtifactId
+        artifact(sourcesJar.get())
 
-            pom {
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
+        pom {
+            name.set("Amazon App Store Publisher")
+            description.set("Gradle Amazon App Store Publisher allows you" +
+                    "to upload your APKs to the amazon app store")
+            url.set(pluginVcsUrl)
+            licenses {
+                license {
+                    name.set("The MIT License (MIT)")
+                    url.set("http://opensource.org/licenses/MIT")
+                    distribution.set("repo")
                 }
-                developers {
-                    developer {
-                        id.set("brantapps")
-                        name.set("David Branton")
-                        email.set("oceanlife.development@gmail.com")
-                    }
+            }
+            developers {
+                developer {
+                    id.set("brantapps")
+                    name.set("David Branton")
+                    email.set("oceanlife.development@gmail.com")
                 }
             }
         }
     }
+}
+
+pluginBundle {
+    website = pluginVcsUrl
+    vcsUrl = pluginVcsUrl
+    tags = listOf("android", "amazon-app-store", "submission-api")
+
+    mavenCoordinates {
+        groupId = project.group as String
+        artifactId = pluginArtifactId
+    }
+}
+
+publishing {
     repositories {
         maven {
             name = "Snapshots"

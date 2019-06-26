@@ -1,8 +1,8 @@
-package com.brantapps.amazonapkpublisher.apks
+package app.brant.amazonappstorepublisher.apks
 
-import com.brantapps.amazonapkpublisher.AmazonAppPublishPlugin
-import com.brantapps.amazonapkpublisher.edits.Edit
-import com.brantapps.amazonapkpublisher.fetchtoken.Token
+import app.brant.amazonappstorepublisher.PublishPlugin
+import app.brant.amazonappstorepublisher.edits.Edit
+import app.brant.amazonappstorepublisher.fetchtoken.Token
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.RequestBody
@@ -78,7 +78,7 @@ class ApkService(val token: Token,
 
 
     fun getApk(editId: String, apkId: String): Apk {
-        val getApksService = AmazonAppPublishPlugin.retrofit
+        val getApksService = PublishPlugin.retrofit
                 .create(ApkService.GetApks::class.java)
         val response: Response<Apk> = getApksService.getApkForEdit(
                 "Bearer ${token.access_token}",
@@ -93,7 +93,7 @@ class ApkService(val token: Token,
     }
 
     fun getApks(editId: String): List<Apk> {
-        val getApksService = AmazonAppPublishPlugin.retrofit
+        val getApksService = PublishPlugin.retrofit
                 .create(ApkService.GetApks::class.java)
         val response: Response<List<Apk>> = getApksService.getApksForEdit(
                 "Bearer ${token.access_token}",
@@ -106,7 +106,7 @@ class ApkService(val token: Token,
 
     fun deleteApk(editId: String, apkId: String): Boolean {
         val apk = getApk(editId, apkId)
-        val deleteApkService = AmazonAppPublishPlugin.retrofit
+        val deleteApkService = PublishPlugin.retrofit
                 .create(ApkService.DeleteApk::class.java)
         val response: Response<ResponseBody> =
                 deleteApkService.deleteApk(
@@ -122,7 +122,7 @@ class ApkService(val token: Token,
 
 
     fun uploadApk(editId: String, apk: File, filename: String?): Boolean {
-        val uploadApkService = AmazonAppPublishPlugin.retrofit
+        val uploadApkService = PublishPlugin.retrofit
                 .create(ApkService.UploadApk::class.java)
         val requestBody = RequestBody.create(
                 MediaType.parse("application/octet-stream"),
@@ -142,7 +142,7 @@ class ApkService(val token: Token,
     }
 
     fun attachApkToEdit(editId: Edit, apkAssetResource: ApkAssetResource): Boolean {
-        val attachApkService = AmazonAppPublishPlugin.retrofit
+        val attachApkService = PublishPlugin.retrofit
                 .create(ApkService.AttachApk::class.java)
         val requestBody = RequestBody.create(
                 MediaType.parse("application/json"),

@@ -1,7 +1,7 @@
-package com.brantapps.amazonapkpublisher.edits
+package app.brant.amazonappstorepublisher.edits
 
-import com.brantapps.amazonapkpublisher.AmazonAppPublishPlugin
-import com.brantapps.amazonapkpublisher.fetchtoken.Token
+import app.brant.amazonappstorepublisher.PublishPlugin
+import app.brant.amazonappstorepublisher.fetchtoken.Token
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
@@ -41,7 +41,7 @@ class EditsService(val token: Token, val version: String, val applicationId: Str
     }
 
     fun getActiveEdit(): Edit? {
-        val activeEdit = AmazonAppPublishPlugin.retrofit
+        val activeEdit = PublishPlugin.retrofit
                 .create(EditsService.GetActiveEdit::class.java)
         val response = activeEdit.getActiveEdit(
                 "Bearer ${token.access_token}",
@@ -51,7 +51,7 @@ class EditsService(val token: Token, val version: String, val applicationId: Str
     }
 
     fun createEdit(): Edit? {
-        val editsService = AmazonAppPublishPlugin.retrofit
+        val editsService = PublishPlugin.retrofit
                 .create(EditsService.CreateEdit::class.java)
         val response: Response<Edit?> = editsService.createEdit(
                 "Bearer ${token.access_token}",
@@ -62,7 +62,7 @@ class EditsService(val token: Token, val version: String, val applicationId: Str
     }
 
     fun deleteEdit(edit: Edit): Boolean {
-        val editsService = AmazonAppPublishPlugin.retrofit
+        val editsService = PublishPlugin.retrofit
                 .create(EditsService.DeleteEdit::class.java)
         val response: Response<ResponseBody> = editsService.deleteEdit(
                 "Bearer ${token.access_token}",

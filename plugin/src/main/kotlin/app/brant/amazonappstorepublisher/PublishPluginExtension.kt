@@ -1,11 +1,11 @@
-package com.brantapps.amazonapkpublisher
+package app.brant.amazonappstorepublisher
 
 import org.gradle.api.tasks.*
 import java.io.File
 import java.io.Serializable
 
 @Suppress("unused") // Used by Gradle
-open class AmazonAppPublishPluginExtension @JvmOverloads constructor(
+open class PublishPluginExtension @JvmOverloads constructor(
         @get:Internal internal val name: String = "default"
 
 ) : Serializable {
