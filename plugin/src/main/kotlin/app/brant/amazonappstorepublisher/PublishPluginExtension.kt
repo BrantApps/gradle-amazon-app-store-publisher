@@ -17,6 +17,9 @@ open class PublishPluginExtension @JvmOverloads constructor(
     internal var replaceEditProp: Boolean? = null
 
     @get:Internal("Backing property for public input")
+    internal var replaceApksProp: Boolean? = null
+
+    @get:Internal("Backing property for public input")
     internal var applicationIdProp: String? = null
 
     @get:Internal("Backing property for public input")
@@ -50,5 +53,12 @@ open class PublishPluginExtension @JvmOverloads constructor(
         get() = replaceEditProp ?: true
         set(value) {
             replaceEditProp = value
+        }
+
+    @get:Input
+    var replaceApks
+        get() = replaceApksProp ?: false
+        set(value) {
+            replaceApksProp = value
         }
 }

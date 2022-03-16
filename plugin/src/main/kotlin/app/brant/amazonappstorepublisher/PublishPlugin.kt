@@ -35,8 +35,8 @@ class PublishPlugin : Plugin<Project> {
             logging.level = HttpLoggingInterceptor.Level.BODY
             val httpClient = OkHttpClient.Builder()
             httpClient.addInterceptor(logging)
-            httpClient.writeTimeout(60, TimeUnit.SECONDS)
-            httpClient.readTimeout(30, TimeUnit.SECONDS)
+            httpClient.writeTimeout(System.getProperty("${PublishPlugin::class.qualifiedName}.writeTimeout", "60").toLong(), TimeUnit.SECONDS)
+            httpClient.readTimeout(System.getProperty("${PublishPlugin::class.qualifiedName}.readTimeout", "30").toLong(), TimeUnit.SECONDS)
             return httpClient.build()
         }
     }
@@ -64,7 +64,7 @@ class PublishPlugin : Plugin<Project> {
                     val activeEdit = editsService.getActiveEdit()
 
                     if (amazon.replaceEdit) {
-                        println("️↕️️ Replacing edit...")
+                        println("️↕️️ Deleting edit...")
                         if (activeEdit != null &&
                                 activeEdit.id.isNotBlank()) {
                             editsService.deleteEdit(activeEdit)
@@ -78,13 +78,17 @@ class PublishPlugin : Plugin<Project> {
                         newEdit = editsService.createEdit()
                     }
 
-
-                    deleteExistingApksOnEdit(apkService, newEdit!!)
-                    uploadApksAndAttachToEdit(
-                            apkService,
-                            newEdit,
-                            amazon.pathToApks
-                    )
+                    if (amazon.replaceApks) {
+                        replaceExistingApksOnEdit(apkService, newEdit!!, amazon.pathToApks)
+                    }
+                    else {
+                        deleteExistingApksOnEdit(apkService, newEdit!!)
+                        uploadApksAndAttachToEdit(
+                                apkService,
+                                newEdit,
+                                amazon.pathToApks
+                        )
+                    }
                 }
             }
         }
@@ -104,6 +108,26 @@ class PublishPlugin : Plugin<Project> {
         }
     }
 
+    private fun replaceExistingApksOnEdit(
+            apkService: ApkService,
+            activeEdit: Edit,
+            apksToReplace: List<File>) {
+        val apks = apkService.getApks(activeEdit.id)
+        if (apks.size != apksToReplace.size) {
+            throw IllegalStateException("❌ Number of existing APKs on edit (${apks.size}) does not match" +
+                "the number of APKs to upload (${apksToReplace.size})")
+        }
+        println("\ud83d\udd04 Replacing APKs in existing edit...")
+        apksToReplace.forEachIndexed { index, apkFile ->
+            println("\u23eb Uploading ${apkFile}...")
+            val status = apkService.replaceApk(activeEdit.id, apks[index].id, apkFile, apkFile.getName())
+            if (!status) {
+                println("❌ Failed to upload APK")
+                throw IllegalStateException("Failed to upload APK")
+            }
+        }
+        println("\uD83C\uDF89 New APK(s) published to the Amazon App Store")
+    }
 
     private fun deleteExistingApksOnEdit(
             apkService: ApkService,
@@ -111,7 +135,10 @@ class PublishPlugin : Plugin<Project> {
         val apks = apkService.getApks(activeEdit.id)
         println("⬅️ Remove APKs from previous edit...")
         apks.forEach {
-            apkService.deleteApk(activeEdit.id, it.id)
+            val status = apkService.deleteApk(activeEdit.id, it.id)
+            if (!status) {
+                throw IllegalStateException("❌ Failed to delete existing APK")
+            }
         }
     }
 

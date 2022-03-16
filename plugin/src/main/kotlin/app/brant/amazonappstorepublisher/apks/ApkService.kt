@@ -53,6 +53,21 @@ class ApkService(val token: Token,
         ): Call<ResponseBody>
     }
 
+    interface ReplaceApk {
+        @Headers("Content-Type: application/vnd.android.package-archive")
+        @PUT("{version}/applications/{appId}/edits/{editId}/apks/{apkId}/replace")
+        fun replaceApk(
+                @Header("Authorization") authorization: String,
+                @Header("If-Match") eTag: String,
+                @Header("filename") filename: String?,
+                @Path("version") version: String,
+                @Path("appId") applicationId: String,
+                @Path("editId") editId: String,
+                @Path("apkId") apkId: String,
+                @Body file: RequestBody
+        ): Call<ResponseBody>
+    }
+
     interface DeleteApk {
         @DELETE("{version}/applications/{appId}/edits/{editId}/apks/{apkId}")
         fun deleteApk(
@@ -120,6 +135,28 @@ class ApkService(val token: Token,
         return response.isSuccessful
     }
 
+    fun replaceApk(editId: String, apkId: String, apkFile: File, filename: String?): Boolean {
+        val apk = getApk(editId, apkId)
+        val replaceApkService = PublishPlugin.retrofit
+                .create(ApkService.ReplaceApk::class.java)
+        val requestBody = RequestBody.create(
+                MediaType.parse("application/vnd.android.package-archive"),
+                apkFile.readBytes()
+        )
+
+        val response: Response<ResponseBody> =
+                replaceApkService.replaceApk(
+                        "Bearer ${token.access_token}",
+                        apk.eTag,
+                        filename,
+                        version,
+                        applicationId,
+                        editId,
+                        apkId,
+                        requestBody
+                ).execute()
+        return response.isSuccessful
+    }
 
     fun uploadApk(editId: String, apk: File, filename: String?): Boolean {
         val uploadApkService = PublishPlugin.retrofit
