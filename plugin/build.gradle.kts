@@ -1,42 +1,71 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
-    id("com.gradle.plugin-publish") version "0.10.1"
-    id("org.gradle.kotlin.kotlin-dsl") version "1.2.8"
-    id("kotlinx-serialization") version "1.3.31"
+    `java-gradle-plugin`
+    `kotlin-dsl`
+    `kotlin-dsl-precompiled-script-plugins`
     `maven-publish`
+    kotlin("plugin.serialization") version "1.6.10"
+    id("com.gradle.plugin-publish") version "1.0.0-rc-1"
 }
 
-group = "app.brant"
-version = "0.1.1"
+val catalogs = extensions.getByType<VersionCatalogsExtension>()
 
-val pluginArtifactId = "amazonappstorepublisher"
-val pluginVcsUrl = "https://github.com/BrantApps/gradle-amazon-app-store-publisher"
+group = "io.github.angel-studios"
+version = "1.0.0"
+
+val pluginDisplayName = "Amazon App Store Deploy Plugin"
+val pluginDescription = "Plugin for delivering APK artifacts to the Amazon App Store as new Edits."
+val pluginArtifactId = "amazon-app-store-publisher"
+val pluginVcsUrl = "https://github.com/Angel-Studios/gradle-amazon-app-store-publisher"
 
 gradlePlugin {
     plugins {
-        register("AmazonAppStorePublisher") {
-            id = project.group as String + "." + pluginArtifactId
-            displayName = "Gradle Amazon App Store Publisher"
-            description = "Gradle Amazon App Store Publisher allows you to upload your APKs to the amazon app store"
-            implementationClass = "app.brant.amazonappstorepublisher.PublishPlugin"
+        create(pluginArtifactId) {
+            id = "$group.$pluginArtifactId"
+            displayName = pluginDisplayName
+            description = pluginDescription
+            implementationClass = "io.github.angelstudios.AmazonDeployPlugin"
         }
     }
 }
 
-val sourcesJar by tasks.registering(Jar::class) {
-    classifier = "sources"
-    from(sourceSets["main"].allSource)
-    dependsOn(tasks["classes"])
+pluginBundle {
+    website = pluginVcsUrl
+    vcsUrl = pluginVcsUrl
+    tags = listOf("android", "amazon-app-store", "submission-api")
+    description = pluginDescription
+    version = "${project.version}"
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("pluginMaven") {
+            artifactId = pluginArtifactId
+
+            pom {
+                name.set(pluginDisplayName)
+                description.set(pluginDescription)
+                url.set(pluginVcsUrl)
+
+                developers {
+                    developer {
+                        id.set("angelstudios")
+                        name.set("Angel Studios")
+                    }
+                }
+            }
+        }
+    }
 }
 
 afterEvaluate {
     publishing.publications.named<MavenPublication>("pluginMaven") {
         artifactId = pluginArtifactId
-        artifact(sourcesJar.get())
 
         pom {
-            name.set("Amazon App Store Publisher")
-            description.set("Gradle Amazon App Store Publisher allows you" +
-                    "to upload your APKs to the amazon app store")
+            name.set(pluginDisplayName)
+            description.set(pluginDescription)
             url.set(pluginVcsUrl)
             licenses {
                 license {
@@ -47,53 +76,20 @@ afterEvaluate {
             }
             developers {
                 developer {
-                    id.set("brantapps")
-                    name.set("David Branton")
-                    email.set("oceanlife.development@gmail.com")
+                    id.set("angelstudios")
+                    name.set("Angel Studios")
                 }
             }
         }
     }
 }
 
-pluginBundle {
-    website = pluginVcsUrl
-    vcsUrl = pluginVcsUrl
-    tags = listOf("android", "amazon-app-store", "submission-api")
-
-    mavenCoordinates {
-        groupId = project.group as String
-        artifactId = pluginArtifactId
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "Snapshots"
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-
-            credentials {
-                username = System.getenv("SONATYPE_NEXUS_USERNAME")
-                password = System.getenv("SONATYPE_NEXUS_PASSWORD")
-            }
-        }
-    }
-}
-
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-
-repositories {
-    google()
-    jcenter()
-}
-
 dependencies {
-    implementation("com.android.tools.build:gradle:3.4.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
-    implementation("com.squareup.retrofit2:retrofit:2.5.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:3.10.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.4.0")
+    val libs = catalogs.named("libs")
+    implementation(libs.findDependency("gradle-android").get())
+    implementation(libs.findDependency("gradle-kotlin").get())
+    implementation(libs.findDependency("kotlinx-serialization-json").get())
+    implementation(libs.findDependency("okhttp-logging-interceptor").get())
+    implementation(libs.findDependency("retrofit").get())
+    implementation(libs.findDependency("retrofit-serialization-converter").get())
 }

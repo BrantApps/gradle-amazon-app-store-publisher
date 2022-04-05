@@ -1,14 +1,11 @@
-Hi there, thanks for looking up my plugin!
+# Amazon App Store Deploy Plugin
+Plugin for delivering APK artifacts to the Amazon App Store as new Edits.
 
-This plugin's functionality is focussed on the binary APK
-upload. If you'd like to contribute more behaviours then...
+This plugin is a fork of [gradle-amazon-app-store-publisher](https://github.com/BrantApps/gradle-amazon-app-store-publisher) seeking to update it for Gradle 7+ and clean up the plugin such that it is easier to maintain.
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-
-## Getting started
-
-1. Create an Amazon Security Profile by following the instructions [here](https://developer.amazon.com/docs/app-submission-api/auth.html)
-    - Then create a Security Profile json file like the following:
+## Setup
+1. Create an [Amazon Security Profile](https://developer.amazon.com/docs/app-submission-api/auth.html).
+2. Create a Security Profile json file like the following:
       ```json
       {
           "grant_type": "client_credentials",
@@ -17,25 +14,18 @@ upload. If you'd like to contribute more behaviours then...
           "scope": "appstore::apps:readwrite"
       }
       ```
-2. Read the Amazon Publishing API overview [here](https://developer.amazon.com/docs/app-submission-api/overview.html)
-3. Add the plugin to your project following the instructions [here](https://plugins.gradle.org/plugin/app.brant.amazonappstorepublisher)
-4. Add the `amazon { }` closure to the module that creates your APK and specify the following attributes:
+3. Add the [plugin](https://plugins.gradle.org/plugin/com.angel.amazon-app-store-publisher) to your project 
+4. Configure the `amazon { }` closure in your application module build script.
     ```groovy
     amazon {
-        securityProfile = file("<path-to-security-profile.json>")
-        applicationId = "<applicationId>"
-        pathToApks = [ file("<path-to-apk>") ]
-        replaceEdit = true // true if you want to delete any existing Edit ("Upcoming version")
-        replaceApks = true // true if you want to replace existing apks in an Edit ("Upcoming version")
+        securityProfile.set(rootProject.file("security-profile.json"))
+        applicationId.set("amzn1.devportal.mobileapp.<id>")
+        replaceEdit.set(false)
+        replaceApks.set(true)
+        useOnlyUniversalApk.set(true)
     }
     ```
-    All paths are relative.
-    
-5. Run `gradlew publishToAmazonAppStore`
-    - For large files or slow networks, you might need to increase the read and write timeouts in seconds by setting `app.brant.amazonappstorepublisher.PublishPlugin.writeTimeout` or `app.brant.amazonappstorepublisher.PublishPlugin.readTimeout` jvm properties
-        - e.g.
-          ```bash
-          gradlew -Dapp.brant.amazonappstorepublisher.PublishPlugin.writeTimeout=600 -Dapp.brant.amazonappstorepublisher.PublishPlugin.readTimeout=300 publishToAmazonAppStore
-          ```
-6. Add it to your Continuous Deployment pipeline
+5. Run `gradlew publishToAmazonAppStore` to assemble and publish your application.
 
+## Resources
+ * [Amazon Publishing API](https://developer.amazon.com/docs/app-submission-api/overview.html)
