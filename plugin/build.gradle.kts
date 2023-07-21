@@ -1,8 +1,8 @@
 plugins {
-    id("com.gradle.plugin-publish") version "0.10.1"
-    id("org.gradle.kotlin.kotlin-dsl") version "1.2.8"
-    id("kotlinx-serialization") version "1.3.31"
-    `maven-publish`
+    id("com.gradle.plugin-publish") version "1.2.0"
+    id("org.jetbrains.kotlin.jvm") version "1.8.20"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.20"
+    `kotlin-dsl`
 }
 
 group = "app.brant"
@@ -12,18 +12,21 @@ val pluginArtifactId = "amazonappstorepublisher"
 val pluginVcsUrl = "https://github.com/BrantApps/gradle-amazon-app-store-publisher"
 
 gradlePlugin {
+    website.set(pluginVcsUrl)
+    vcsUrl.set(pluginVcsUrl)
     plugins {
         register("AmazonAppStorePublisher") {
             id = project.group as String + "." + pluginArtifactId
             displayName = "Gradle Amazon App Store Publisher"
             description = "Gradle Amazon App Store Publisher allows you to upload your APKs to the amazon app store"
             implementationClass = "app.brant.amazonappstorepublisher.PublishPlugin"
+            tags.set(listOf("android", "amazon-app-store", "submission-api"))
         }
     }
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
-    classifier = "sources"
+    archiveClassifier.set("sources")
     from(sourceSets["main"].allSource)
     dependsOn(tasks["classes"])
 }
@@ -35,8 +38,10 @@ afterEvaluate {
 
         pom {
             name.set("Amazon App Store Publisher")
-            description.set("Gradle Amazon App Store Publisher allows you" +
-                    "to upload your APKs to the amazon app store")
+            description.set(
+                "Gradle Amazon App Store Publisher allows you" +
+                        "to upload your APKs to the amazon app store"
+            )
             url.set(pluginVcsUrl)
             licenses {
                 license {
@@ -56,17 +61,6 @@ afterEvaluate {
     }
 }
 
-pluginBundle {
-    website = pluginVcsUrl
-    vcsUrl = pluginVcsUrl
-    tags = listOf("android", "amazon-app-store", "submission-api")
-
-    mavenCoordinates {
-        groupId = project.group as String
-        artifactId = pluginArtifactId
-    }
-}
-
 publishing {
     repositories {
         maven {
@@ -81,19 +75,33 @@ publishing {
     }
 }
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-
 repositories {
     google()
-    jcenter()
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "com.google.protobuf" && requested.name == "protobuf-java") {
+                val requestedVersion = requested.version
+                if (requestedVersion == null) {
+                    useVersion("3.23.4")
+                } else {
+                    val (major, minor, patch) = requestedVersion.split(".")
+                    if (major == "3" && minor == "19" && patch.toInt() < 6) {
+                        useVersion("3.23.4") // just use the latest version
+                    }
+                }
+            }
+        }
+    }
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle:3.4.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
-    implementation("com.squareup.retrofit2:retrofit:2.5.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:3.10.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.4.0")
+    implementation("com.android.tools.build:gradle-api:8.0.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 }
