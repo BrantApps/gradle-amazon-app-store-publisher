@@ -4,8 +4,9 @@ import app.brant.amazonappstorepublisher.PublishPlugin
 import app.brant.amazonappstorepublisher.edits.Edit
 import app.brant.amazonappstorepublisher.fetchtoken.Token
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
@@ -139,9 +140,8 @@ class ApkService(val token: Token,
         val apk = getApk(editId, apkId)
         val replaceApkService = PublishPlugin.retrofit
                 .create(ApkService.ReplaceApk::class.java)
-        val requestBody = RequestBody.create(
-                MediaType.parse("application/vnd.android.package-archive"),
-                apkFile.readBytes()
+        val requestBody = apkFile.readBytes().toRequestBody(
+                "application/vnd.android.package-archive".toMediaType()
         )
 
         val response: Response<ResponseBody> =
@@ -161,9 +161,8 @@ class ApkService(val token: Token,
     fun uploadApk(editId: String, apk: File, filename: String?): Boolean {
         val uploadApkService = PublishPlugin.retrofit
                 .create(ApkService.UploadApk::class.java)
-        val requestBody = RequestBody.create(
-                MediaType.parse("application/octet-stream"),
-                apk.readBytes()
+        val requestBody = apk.readBytes().toRequestBody(
+                "application/octet-stream".toMediaType()
         )
 
         val response: Response<ResponseBody> =
@@ -181,10 +180,8 @@ class ApkService(val token: Token,
     fun attachApkToEdit(editId: Edit, apkAssetResource: ApkAssetResource): Boolean {
         val attachApkService = PublishPlugin.retrofit
                 .create(ApkService.AttachApk::class.java)
-        val requestBody = RequestBody.create(
-                MediaType.parse("application/json"),
-                Json.stringify(ApkAssetResource.serializer(), apkAssetResource)
-        )
+        val requestBody = Json.encodeToString(ApkAssetResource.serializer(), apkAssetResource)
+            .toRequestBody("application/json".toMediaType())
 
         val response: Response<ResponseBody> =
                 attachApkService.attachApkToEdit(
