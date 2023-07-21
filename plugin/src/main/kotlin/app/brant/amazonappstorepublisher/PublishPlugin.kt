@@ -7,6 +7,7 @@ import app.brant.amazonappstorepublisher.fetchtoken.FetchTokenService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.gradle.api.Plugin
@@ -20,13 +21,14 @@ import javax.naming.ConfigurationException
 @Suppress("unused") // Used by Gradle
 class PublishPlugin : Plugin<Project> {
     companion object {
-        private val contentType: MediaType = MediaType.get("application/json")
+        private val contentType: MediaType = "application/json".toMediaType()
         const val apiVersion = "v1"
         const val pluginDslRoot = "amazon"
+        val json: Json = Json { isLenient = true }
         val retrofit: Retrofit = Retrofit.Builder()
                 .baseUrl("https://developer.amazon.com/api/appstore/")
                 .addConverterFactory(
-                        Json.nonstrict.asConverterFactory(contentType))
+                        json.asConverterFactory(contentType))
                 .client(buildOkHttpClient())
                 .build()
 

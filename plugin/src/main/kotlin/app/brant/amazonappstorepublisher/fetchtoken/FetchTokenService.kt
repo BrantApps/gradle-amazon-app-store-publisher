@@ -40,6 +40,6 @@ class FetchTokenService {
     }
 
     fun parseSecurityProfile(securityProfileFile: File?): SecurityProfile {
-        return Json.parse(SecurityProfile.serializer(), securityProfileFile!!.readText())
+        return Json.decodeFromString(SecurityProfile.serializer(), securityProfileFile!!.readText())
     }
 }
